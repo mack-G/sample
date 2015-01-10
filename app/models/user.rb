@@ -1,4 +1,6 @@
 class User < ActiveRecord::Base
+  has_many :microposts, dependent: :destroy
+
   attr_accessor :remember_token
   before_save { self.email = email.downcase }
   validates :name,  presence: true, length: { maximum: 50 }
@@ -8,6 +10,12 @@ class User < ActiveRecord::Base
   uniqueness: { case_sensitive: false }
   has_secure_password
   validates :password, length: { minimum: 6 }, allow_blank: true
+
+  # Defines a proto-feed.
+  # See "Following users" for the full implementation.
+  def feed
+    Micropost.where("user_id = ?", id)
+  end
 
   # Returns the hash digest of the given string.
   def User.digest(string)
@@ -42,5 +50,8 @@ class User < ActiveRecord::Base
     return false if remember_digest.nil?
     BCrypt::Password.new(remember_digest).is_password?(remember_token)
   end
+
+
+
 
 end
